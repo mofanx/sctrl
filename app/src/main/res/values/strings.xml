@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" debug_suffix="true">ANK</string>
+    <string name="a11y_desc">通用无障碍服务框架\n\n提供无障碍服务基础设施，支持 Shizuku 集成、HTTP Server、悬浮窗等系统能力</string>
+    <string name="http_server" debug_suffix="true">HTTP服务</string>
+</resources>
