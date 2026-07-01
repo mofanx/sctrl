@@ -18,7 +18,7 @@
 - Shizuku + LSposed HiddenApiBypass
 - Ktor 3 (Server + Client)
 
-详见 [TECH_STACK.md](TECH_STACK.md) 和 [UI_DESIGN.md](UI_DESIGN.md)
+详见 [TECH_STACK.md](docs/TECH_STACK.md) 和 [UI_DESIGN.md](docs/UI_DESIGN.md)
 
 ## 免责声明
 
