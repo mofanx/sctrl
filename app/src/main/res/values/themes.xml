@@ -9,14 +9,16 @@
     </style>
 
     <style name="SplashScreenLightTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/better_white</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/sctrl_black</item>
-        <item name="windowSplashScreenAnimationDuration">1000</item>
+        <item name="windowSplashScreenAnimationDuration">300</item>
         <item name="postSplashScreenTheme">@style/AppLightTheme</item>
     </style>
 
     <style name="SplashScreenNightTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/better_black</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/sctrl_white</item>
-        <item name="windowSplashScreenAnimationDuration">1000</item>
+        <item name="windowSplashScreenAnimationDuration">300</item>
         <item name="postSplashScreenTheme">@style/AppNightTheme</item>
     </style>
 

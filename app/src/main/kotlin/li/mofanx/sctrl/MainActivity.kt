@@ -86,8 +86,6 @@ import li.mofanx.sctrl.ui.CrashReportPage
 import li.mofanx.sctrl.ui.CrashReportRoute
 import li.mofanx.sctrl.ui.ImagePreviewPage
 import li.mofanx.sctrl.ui.ImagePreviewRoute
-import li.mofanx.sctrl.ui.ScreenControlPage
-import li.mofanx.sctrl.ui.ScreenControlRoute
 import li.mofanx.sctrl.ui.WebViewPage
 import li.mofanx.sctrl.ui.WebViewRoute
 import li.mofanx.sctrl.ui.component.BuildDialog
@@ -232,7 +230,6 @@ class MainActivity : ComponentActivity() {
                             entry<AboutRoute> { AboutPage() }
                             entry<AdvancedRoute> { AdvancedPage() }
                             entry<AppOpsAllowRoute> { AppOpsAllowPage() }
-                            entry<ScreenControlRoute> { ScreenControlPage() }
                             entry<WebViewRoute> { WebViewPage(it) }
                             entry<ImagePreviewRoute> { ImagePreviewPage(it) }
                             entry<CrashReportRoute> { CrashReportPage() }

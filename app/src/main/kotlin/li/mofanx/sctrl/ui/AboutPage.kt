@@ -1,9 +1,6 @@
 package li.mofanx.sctrl.ui
 
 import androidx.activity.compose.LocalActivity
-import androidx.compose.animation.graphics.res.animatedVectorResource
-import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
-import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -21,9 +18,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -31,11 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
+
 import kotlinx.serialization.Serializable
 import li.mofanx.sctrl.META
 import li.mofanx.sctrl.MainActivity
@@ -135,18 +132,9 @@ private fun AnimatedLogoIcon(
 ) {
     val darkTheme = LocalDarkTheme.current
     val colorRid = if (darkTheme) R.color.better_white else R.color.better_black
-    var atEnd by remember { mutableStateOf(false) }
-    val animation = AnimatedImageVector.animatedVectorResource(id = R.drawable.ic_anim_logo)
-    val painter = rememberAnimatedVectorPainter(animation, atEnd)
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            atEnd = !atEnd
-            delay(animation.totalDuration.toLong())
-        }
-    }
     Icon(
         modifier = modifier,
-        painter = painter,
+        painter = painterResource(R.drawable.ic_launcher_foreground),
         contentDescription = null,
         tint = colorResource(colorRid),
     )
