@@ -58,9 +58,9 @@ plugins {
 }
 
 android {
-    namespace = "li.mofanx.ank"
+    namespace = "li.mofanx.sctrl"
     defaultConfig {
-        applicationId = "li.mofanx.ank"
+        applicationId = "li.mofanx.sctrl"
         versionCode = 92
         versionName = "1.12.1"
 
@@ -87,12 +87,12 @@ android {
         resValues = true
     }
 
-    val ankSigningConfig = if (project.hasProperty("ANK_STORE_FILE")) {
-        signingConfigs.create("ank") {
-            storeFile = file(project.properties["ANK_STORE_FILE"] as String)
-            storePassword = project.findProperty("ANK_STORE_PASSWORD")?.toString()
-            keyAlias = project.findProperty("ANK_KEY_ALIAS")?.toString()
-            keyPassword = project.findProperty("ANK_KEY_PASSWORD")?.toString()
+    val ankSigningConfig = if (project.hasProperty("SCTRL_STORE_FILE")) {
+        signingConfigs.create("sctrl") {
+            storeFile = file(project.properties["SCTRL_STORE_FILE"] as String)
+            storePassword = project.findProperty("SCTRL_STORE_PASSWORD")?.toString()
+            keyAlias = project.findProperty("SCTRL_KEY_ALIAS")?.toString()
+            keyPassword = project.findProperty("SCTRL_KEY_PASSWORD")?.toString()
         }
     } else {
         signingConfigs.getByName("debug")
@@ -133,7 +133,7 @@ android {
     }
     productFlavors {
         flavorDimensions += "channel"
-        create("ank") {
+        create("sctrl") {
             isDefault = true
             signingConfig = ankSigningConfig
             resValue("bool", "is_accessibility_tool", "true")
@@ -161,11 +161,11 @@ android {
     )
 }
 
-if (project.hasProperty("ANK_RENAME_APK_FLAG")) {
+if (project.hasProperty("SCTRL_RENAME_APK_FLAG")) {
     androidComponents.onVariants { variant ->
         variant.outputs.onEach { output ->
             output as VariantOutputImpl
-            output.outputFileName = "ank-v${output.versionName.get()}.apk"
+            output.outputFileName = "sctrl-v${output.versionName.get()}.apk"
         }
     }
 }

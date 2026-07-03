@@ -1,6 +1,6 @@
-# ank UI 设计指南
+# sctrl UI 设计指南
 
-> 本文档总结 ank 项目的 UI 架构、设计模式和组件体系，可用于指导新项目采用相同的框架和设计语言进行开发。
+> 本文档总结 sctrl 项目的 UI 架构、设计模式和组件体系，可用于指导新项目采用相同的框架和设计语言进行开发。
 
 ---
 
@@ -577,7 +577,7 @@ PerfTopAppBar(windowInsets = activity.topBarWindowInsets)
 ## 10. 代码组织结构
 
 ```
-app/src/main/kotlin/li/songe/ank/
+app/src/main/kotlin/li/mofanx/sctrl/
 ├── MainActivity.kt              # 入口，导航注册，全局 Dialog
 ├── MainViewModel.kt             # 导航栈管理，全局状态
 ├── ui/

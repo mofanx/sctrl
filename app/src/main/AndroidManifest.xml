@@ -72,7 +72,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="ank" />
+                <data android:scheme="sctrl" />
             </intent-filter>
         </activity>
         <activity
@@ -137,7 +137,7 @@
                 android:value="Enable the HTTP server to provide external browser connections and debugging" />
         </service>
         <service
-            android:name=".service.AnkTileService"
+            android:name=".service.SctrlTileService"
             android:exported="true"
             android:icon="@drawable/ic_status"
             android:label="@string/app_name"
@@ -147,7 +147,7 @@
                 android:value="true" />
             <meta-data
                 android:name="QS_TILE_URI"
-                android:value="ank://page" />
+                android:value="sctrl://page" />
 
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
@@ -164,7 +164,7 @@
                 android:value="true" />
             <meta-data
                 android:name="QS_TILE_URI"
-                android:value="ank://page/1" />
+                android:value="sctrl://page/1" />
 
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />

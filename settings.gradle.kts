@@ -1,4 +1,4 @@
-rootProject.name = "ank"
+rootProject.name = "sctrl"
 include(
     ":app",
     ":hidden_api",

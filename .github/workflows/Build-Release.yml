@@ -20,13 +20,13 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
 
-      - name: write ank secrets info
+      - name: write sctrl secrets info
         run: |
-          echo ${{ secrets.ANK_STORE_FILE_BASE64 }} | base64 --decode > ${{ github.workspace }}/ank.jks
-          echo ANK_STORE_FILE='${{ github.workspace }}/ank.jks' >> gradle.properties
-          echo ANK_STORE_PASSWORD='${{ secrets.ANK_STORE_PASSWORD }}' >> gradle.properties
-          echo ANK_KEY_ALIAS='${{ secrets.ANK_KEY_ALIAS }}' >> gradle.properties
-          echo ANK_KEY_PASSWORD='${{ secrets.ANK_KEY_PASSWORD }}' >> gradle.properties
+          echo ${{ secrets.SCTRL_STORE_FILE_BASE64 }} | base64 --decode > ${{ github.workspace }}/sctrl.jks
+          echo SCTRL_STORE_FILE='${{ github.workspace }}/sctrl.jks' >> gradle.properties
+          echo SCTRL_STORE_PASSWORD='${{ secrets.SCTRL_STORE_PASSWORD }}' >> gradle.properties
+          echo SCTRL_KEY_ALIAS='${{ secrets.SCTRL_KEY_ALIAS }}' >> gradle.properties
+          echo SCTRL_KEY_PASSWORD='${{ secrets.SCTRL_KEY_PASSWORD }}' >> gradle.properties
 
       - name: write play secrets info
         run: |
@@ -37,12 +37,12 @@ jobs:
           echo PLAY_KEY_PASSWORD='${{ secrets.PLAY_KEY_PASSWORD }}' >> gradle.properties
 
       - run: chmod 777 ./gradlew
-      - run: ./gradlew app:assembleAnkRelease app:bundlePlayRelease
+      - run: ./gradlew app:assembleSctrlRelease app:bundlePlayRelease
 
       - uses: actions/upload-artifact@v7
         with:
           name: release
-          path: app/build/outputs/apk/ank/release
+          path: app/build/outputs/apk/sctrl/release
 
       - uses: actions/upload-artifact@v7
         with:
@@ -95,8 +95,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/app-ank-release.apk
-          asset_name: ank-${{ github.ref_name }}.apk
+          asset_path: release/app-sctrl-release.apk
+          asset_name: sctrl-${{ github.ref_name }}.apk
           asset_content_type: application/vnd.android.package-archive
 
       - run: zip -r outputs.zip outputs
