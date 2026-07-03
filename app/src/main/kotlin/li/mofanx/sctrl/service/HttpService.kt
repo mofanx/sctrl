@@ -22,6 +22,7 @@ import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,9 @@ import li.mofanx.sctrl.data.DeviceInfo
 import li.mofanx.sctrl.data.selfAppInfo
 import li.mofanx.sctrl.notif.StopServiceReceiver
 import li.mofanx.sctrl.notif.httpNotif
+import li.mofanx.sctrl.shizuku.shizukuContextFlow
 import li.mofanx.sctrl.store.storeFlow
+import li.mofanx.sctrl.ui.home.HomeVm
 import li.mofanx.sctrl.util.DefaultSimpleLifeImpl
 import li.mofanx.sctrl.util.LogUtils
 import li.mofanx.sctrl.util.OnSimpleLife
@@ -66,6 +69,7 @@ class HttpService : Service(), OnSimpleLife by DefaultSimpleLifeImpl() {
             }
         }
         onDestroyed {
+            httpServerFlow.value?.stop()
             httpServerFlow.value = null
         }
         onCreated {
@@ -122,6 +126,13 @@ data class ServerInfo(
     val appInfo: AppInfo = selfAppInfo
 )
 
+@Serializable
+data class ScreenResult(
+    val success: Boolean,
+    val screenOff: Boolean,
+    val message: String = "",
+)
+
 private fun createServer(port: Int) = embeddedServer(CIO, port) {
     install(getKtorCorsPlugin())
     install(getKtorErrorPlugin())
@@ -130,6 +141,33 @@ private fun createServer(port: Int) = embeddedServer(CIO, port) {
         get("/") { call.respondText(ContentType.Text.Html) { "<h1>HTTP Server Running</h1>" } }
         route("/api") {
             get("/getServerInfo") { call.respond(ServerInfo()) }
+            // 查询屏幕当前状态
+            get("/screen/state") {
+                val screenOff = shizukuContextFlow.value.isKeepingScreenOff()
+                call.respond(ScreenResult(success = true, screenOff = screenOff))
+            }
+            // 关闭屏幕
+            post("/screen/off") {
+                val ctx = shizukuContextFlow.value
+                if (ctx.serviceWrapper == null) {
+                    call.respond(ScreenResult(success = false, screenOff = false, message = "Shizuku 服务未连接"))
+                    return@post
+                }
+                val ok = ctx.setDisplayPowerMode(true)
+                if (ok) HomeVm.screenOffFlow.value = true
+                call.respond(ScreenResult(success = ok, screenOff = ok, message = if (ok) "" else "熄屏失败"))
+            }
+            // 开启屏幕
+            post("/screen/on") {
+                val ctx = shizukuContextFlow.value
+                if (ctx.serviceWrapper == null) {
+                    call.respond(ScreenResult(success = false, screenOff = true, message = "Shizuku 服务未连接"))
+                    return@post
+                }
+                val ok = ctx.setDisplayPowerMode(false)
+                if (ok) HomeVm.screenOffFlow.value = false
+                call.respond(ScreenResult(success = ok, screenOff = !ok, message = if (ok) "" else "亮屏失败"))
+            }
         }
     }
 }
