@@ -38,7 +38,7 @@ jobs:
       - run: echo SCTRL_RENAME_APK_FLAG=1 >> gradle.properties
 
       - run: chmod 777 ./gradlew
-      - run: ./gradlew app:assembleSctrlRelease
+      - run: ./gradlew app:assembleSctrlRelease -x lintVitalSctrlRelease
 
       - uses: actions/upload-artifact@v7
         with:

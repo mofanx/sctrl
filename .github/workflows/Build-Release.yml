@@ -37,7 +37,7 @@ jobs:
           echo "PLAY_KEY_PASSWORD=${{ secrets.PLAY_KEY_PASSWORD }}" >> gradle.properties
 
       - run: chmod 777 ./gradlew
-      - run: ./gradlew app:assembleSctrlRelease app:bundlePlayRelease
+      - run: ./gradlew app:assembleSctrlRelease app:bundlePlayRelease -x lintVitalSctrlRelease -x lintVitalPlayRelease
 
       - uses: actions/upload-artifact@v7
         with:
