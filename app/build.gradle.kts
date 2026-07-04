@@ -61,8 +61,8 @@ android {
     namespace = "li.mofanx.sctrl"
     defaultConfig {
         applicationId = "li.mofanx.sctrl"
-        versionCode = 92
-        versionName = "1.12.1"
+        versionCode = 1
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
