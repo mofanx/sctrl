@@ -29,11 +29,11 @@ jobs:
 
       - name: write sctrl secrets info
         run: |
-          echo ${{ secrets.SCTRL_STORE_FILE_BASE64 }} | base64 --decode > ${{ github.workspace }}/sctrl.jks
-          echo SCTRL_STORE_FILE='${{ github.workspace }}/sctrl.jks' >> gradle.properties
-          echo SCTRL_STORE_PASSWORD='${{ secrets.SCTRL_STORE_PASSWORD }}' >> gradle.properties
-          echo SCTRL_KEY_ALIAS='${{ secrets.SCTRL_KEY_ALIAS }}' >> gradle.properties
-          echo SCTRL_KEY_PASSWORD='${{ secrets.SCTRL_KEY_PASSWORD }}' >> gradle.properties
+          echo "${{ secrets.SCTRL_STORE_FILE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/sctrl.jks
+          echo "SCTRL_STORE_FILE=${{ github.workspace }}/sctrl.jks" >> gradle.properties
+          echo "SCTRL_STORE_PASSWORD=${{ secrets.SCTRL_STORE_PASSWORD }}" >> gradle.properties
+          echo "SCTRL_KEY_ALIAS=${{ secrets.SCTRL_KEY_ALIAS }}" >> gradle.properties
+          echo "SCTRL_KEY_PASSWORD=${{ secrets.SCTRL_KEY_PASSWORD }}" >> gradle.properties
 
       - run: echo SCTRL_RENAME_APK_FLAG=1 >> gradle.properties
 

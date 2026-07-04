@@ -22,19 +22,19 @@ jobs:
 
       - name: write sctrl secrets info
         run: |
-          echo ${{ secrets.SCTRL_STORE_FILE_BASE64 }} | base64 --decode > ${{ github.workspace }}/sctrl.jks
-          echo SCTRL_STORE_FILE='${{ github.workspace }}/sctrl.jks' >> gradle.properties
-          echo SCTRL_STORE_PASSWORD='${{ secrets.SCTRL_STORE_PASSWORD }}' >> gradle.properties
-          echo SCTRL_KEY_ALIAS='${{ secrets.SCTRL_KEY_ALIAS }}' >> gradle.properties
-          echo SCTRL_KEY_PASSWORD='${{ secrets.SCTRL_KEY_PASSWORD }}' >> gradle.properties
+          echo "${{ secrets.SCTRL_STORE_FILE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/sctrl.jks
+          echo "SCTRL_STORE_FILE=${{ github.workspace }}/sctrl.jks" >> gradle.properties
+          echo "SCTRL_STORE_PASSWORD=${{ secrets.SCTRL_STORE_PASSWORD }}" >> gradle.properties
+          echo "SCTRL_KEY_ALIAS=${{ secrets.SCTRL_KEY_ALIAS }}" >> gradle.properties
+          echo "SCTRL_KEY_PASSWORD=${{ secrets.SCTRL_KEY_PASSWORD }}" >> gradle.properties
 
       - name: write play secrets info
         run: |
-          echo ${{ secrets.PLAY_STORE_FILE_BASE64 }} | base64 --decode > ${{ github.workspace }}/play.jks
-          echo PLAY_STORE_FILE='${{ github.workspace }}/play.jks' >> gradle.properties
-          echo PLAY_STORE_PASSWORD='${{ secrets.PLAY_STORE_PASSWORD }}' >> gradle.properties
-          echo PLAY_KEY_ALIAS='${{ secrets.PLAY_KEY_ALIAS }}' >> gradle.properties
-          echo PLAY_KEY_PASSWORD='${{ secrets.PLAY_KEY_PASSWORD }}' >> gradle.properties
+          echo "${{ secrets.PLAY_STORE_FILE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/play.jks
+          echo "PLAY_STORE_FILE=${{ github.workspace }}/play.jks" >> gradle.properties
+          echo "PLAY_STORE_PASSWORD=${{ secrets.PLAY_STORE_PASSWORD }}" >> gradle.properties
+          echo "PLAY_KEY_ALIAS=${{ secrets.PLAY_KEY_ALIAS }}" >> gradle.properties
+          echo "PLAY_KEY_PASSWORD=${{ secrets.PLAY_KEY_PASSWORD }}" >> gradle.properties
 
       - run: chmod 777 ./gradlew
       - run: ./gradlew app:assembleSctrlRelease app:bundlePlayRelease
