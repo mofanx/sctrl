@@ -395,6 +395,7 @@ object ScreenControlHelper {
             val cls = classLoader.loadClass("com.android.server.display.DisplayControl")
             // 加载 android_servers 库，使 native 方法可用
             try {
+                @Suppress("BlockedPrivateApi")
                 val loadMethod = Runtime::class.java.getDeclaredMethod(
                     "loadLibrary0",
                     Class::class.java,
