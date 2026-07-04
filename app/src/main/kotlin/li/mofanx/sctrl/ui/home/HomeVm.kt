@@ -8,10 +8,15 @@ import li.mofanx.sctrl.shizuku.shizukuContextFlow
 import li.mofanx.sctrl.ui.share.BaseViewModel
 
 class HomeVm : BaseViewModel() {
-    val screenOffFlow = MutableStateFlow(false)
+    val screenOffFlow get() = Companion.screenOffFlow
     val stayAwakeFlow = MutableStateFlow(false)
     val showEditPortDlgFlow = MutableStateFlow(false)
     val showShizukuStateFlow = MutableStateFlow(false)
+
+    companion object {
+        /** 全局共享，HttpService 等也可直接读写以同步 UI 状态 */
+        val screenOffFlow = MutableStateFlow(false)
+    }
 
     /**
      * 首页 resume 时调用：如果远端仍在守护但屏幕实际已开启（用户解锁回来了），

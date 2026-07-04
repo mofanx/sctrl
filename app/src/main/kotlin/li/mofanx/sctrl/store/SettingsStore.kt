@@ -11,4 +11,5 @@ data class SettingsStore(
     val enableDarkTheme: Boolean? = null,
     val enableDynamicColor: Boolean = true,
     val useSystemToast: Boolean = false,
+    val termsAccepted: Boolean = false,
 )

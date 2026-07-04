@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -19,7 +20,11 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withLink
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import li.mofanx.sctrl.MainActivity
+import li.mofanx.sctrl.store.storeFlow
 import li.mofanx.sctrl.ui.share.LocalMainViewModel
 import li.mofanx.sctrl.util.throttle
 
@@ -29,6 +34,7 @@ fun TermsAcceptDialog() {
     val mainVm = LocalMainViewModel.current
     val context = LocalActivity.current as MainActivity
     val modifier = Modifier.fillMaxWidth()
+    val scope = rememberCoroutineScope()
     val stepDataList = remember {
         arrayOf(
             "使用声明" to @Composable {
@@ -59,20 +65,13 @@ fun TermsAcceptDialog() {
                         ) {
                             append("隐私政策")
                         }
-                        append("」才能继续使用, 请仔细阅读相关内容")
+                        append("」才能继续使用。本应用通过 Shizuku 提供屏幕控制等系统能力，请确保已安装并授权 Shizuku。")
                     },
-                )
-            },
-            "关于无障碍" to @Composable {
-                Text(
-                    modifier = modifier,
-                    text = "SCTRL 请求使用系统「无障碍 API」获取屏幕信息, 以此基于用户自定义订阅规则执行自动化操作",
                 )
             }
         )
     }
-    var step by rememberSaveable { mutableIntStateOf(0) }
-
+    val step = 0 // 只有一个步骤，固定为 0
     AlertDialog(
         onDismissRequest = {},
         title = {
@@ -81,10 +80,10 @@ fun TermsAcceptDialog() {
         text = stepDataList[step].second,
         confirmButton = {
             TextButton(onClick = throttle {
-                if (step < stepDataList.size - 1) {
-                    step++
-                } else {
-                    mainVm.termsAcceptedFlow.value = true
+                mainVm.termsAcceptedFlow.value = true
+                scope.launch {
+                    val current = storeFlow.value
+                    storeFlow.value = current.copy(termsAccepted = true)
                 }
             }) {
                 Text(text = "同意")

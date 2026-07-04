@@ -41,20 +41,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import li.mofanx.sctrl.MainActivity
-import li.mofanx.sctrl.permission.foregroundServiceSpecialUseState
-import li.mofanx.sctrl.permission.notificationState
-import li.mofanx.sctrl.permission.requiredPermission
+
 import li.mofanx.sctrl.permission.shizukuGrantedState
-import li.mofanx.sctrl.permission.writeSecureSettingsState
-import li.mofanx.sctrl.service.A11yService
 import li.mofanx.sctrl.service.HttpService
 import li.mofanx.sctrl.service.StatusService
-import li.mofanx.sctrl.service.switchAutomatorService
 import li.mofanx.sctrl.shizuku.shizukuContextFlow
 import li.mofanx.sctrl.shizuku.updateBinderMutex
 import li.mofanx.sctrl.store.storeFlow
 import li.mofanx.sctrl.ui.AboutRoute
-import li.mofanx.sctrl.ui.AuthA11yRoute
 import li.mofanx.sctrl.ui.component.AuthCard
 import li.mofanx.sctrl.ui.component.PageSwitchItemCard
 import li.mofanx.sctrl.ui.component.PerfIcon
@@ -171,9 +165,7 @@ fun useSettingsPage(): ScaffoldExt {
             })
         }) { contentPadding ->
         val store by storeFlow.collectAsState()
-        val a11yRunning by A11yService.isRunning.collectAsState()
         val manageRunning by StatusService.isRunning.collectAsState()
-        val writeSecureSettings by writeSecureSettingsState.stateFlow.collectAsState()
         val shizukuGranted by shizukuGrantedState.stateFlow.collectAsState()
         val server by HttpService.httpServerFlow.collectAsState()
         val httpServerRunning = server != null
@@ -207,22 +199,6 @@ fun useSettingsPage(): ScaffoldExt {
                 modifier = Modifier.titleItemPadding(),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
-            )
-            PageSwitchItemCard(
-                imageVector = PerfIcon.Memory,
-                title = "无障碍服务",
-                subtitle = if (a11yRunning) "无障碍正在运行"
-                    else if (mainVm.a11yServiceEnabledFlow.collectAsState().value) "无障碍发生故障"
-                    else if (writeSecureSettings) "无障碍已关闭"
-                    else "无障碍未授权",
-                checked = a11yRunning,
-                onCheckedChange = { newEnabled ->
-                    if (newEnabled && !writeSecureSettingsState.value) {
-                        mainVm.navigatePage(AuthA11yRoute)
-                    } else {
-                        switchAutomatorService()
-                    }
-                },
             )
             PageSwitchItemCard(
                 imageVector = PerfIcon.Notifications,
@@ -287,21 +263,24 @@ fun useSettingsPage(): ScaffoldExt {
                 subtitle = "在浏览器下连接调试",
                 checked = httpServerRunning,
                 onCheckedChange = throttle(fn = vm.viewModelScope.launchAsFn<Boolean> {
-                    if (it) {
-                        requiredPermission(context, foregroundServiceSpecialUseState)
-                        requiredPermission(context, notificationState)
-                        HttpService.start()
-                    } else {
-                        HttpService.stop()
-                    }
+                    if (it) HttpService.start() else HttpService.stop()
                 })
             )
             AnimatedVisibility(visible = httpServerRunning) {
-                Column(modifier = Modifier.itemPadding()) {
-                    Text(text = "点击下方链接即可连接")
+                Column(
+                    modifier = Modifier.itemPadding(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // 连接地址
+                    Text(
+                        text = "连接地址",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     val localUrl = "http://127.0.0.1:${store.httpServerPort}"
                     Text(
                         text = localUrl,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.clickable(onClick = throttle { mainVm.openUrl(localUrl) }),
                     )
@@ -309,10 +288,50 @@ fun useSettingsPage(): ScaffoldExt {
                         val lanUrl = "http://${host}:${store.httpServerPort}"
                         Text(
                             text = lanUrl,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.clickable(onClick = throttle { mainVm.openUrl(lanUrl) })
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // API 接口
+                    Text(
+                        text = "屏幕控制 API",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    val apiBase = if (localNetworkIps.isNotEmpty())
+                        "http://${localNetworkIps.first()}:${store.httpServerPort}"
+                    else
+                        "http://127.0.0.1:${store.httpServerPort}"
+                    listOf(
+                        "GET  /api/screen/state" to "查询屏幕状态",
+                        "POST /api/screen/off"   to "关闭屏幕（熄屏）",
+                        "POST /api/screen/on"    to "开启屏幕（亮屏）",
+                    ).forEach { (method, desc) ->
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = method,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                modifier = Modifier.weight(1f),
+                                color = MaterialTheme.colorScheme.secondary,
+                            )
+                            Text(
+                                text = desc,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    Text(
+                        text = "示例：curl -X POST $apiBase/api/screen/off",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
             SettingItem(

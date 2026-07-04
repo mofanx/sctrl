@@ -81,7 +81,7 @@ import li.mofanx.sctrl.ui.AdvancedRoute
 import li.mofanx.sctrl.ui.AppOpsAllowPage
 import li.mofanx.sctrl.ui.AppOpsAllowRoute
 import li.mofanx.sctrl.ui.AuthA11yPage
-import li.mofanx.sctrl.ui.AuthA11yRoute
+// import li.mofanx.sctrl.ui.AuthA11yRoute
 import li.mofanx.sctrl.ui.CrashReportPage
 import li.mofanx.sctrl.ui.CrashReportRoute
 import li.mofanx.sctrl.ui.ImagePreviewPage
@@ -226,7 +226,8 @@ class MainActivity : ComponentActivity() {
                         onBack = mainVm::popPage,
                         entryProvider = entryProvider {
                             entry<HomeRoute> { HomePage() }
-                            entry<AuthA11yRoute> { AuthA11yPage() }
+                            // 暂时隐藏无障碍授权页面
+                            // entry<AuthA11yRoute> { AuthA11yPage() }
                             entry<AboutRoute> { AboutPage() }
                             entry<AdvancedRoute> { AdvancedPage() }
                             entry<AppOpsAllowRoute> { AppOpsAllowPage() }
@@ -251,7 +252,6 @@ class MainActivity : ComponentActivity() {
                         TermsAcceptDialog()
                     } else {
                         UiAutomationAlreadyRegisteredDlg()
-                        AccessRestrictedSettingsDlg()
                         ShizukuErrorDialog(mainVm.shizukuErrorFlow)
                         AuthDialog(mainVm.authReasonFlow)
                         BuildDialog(mainVm.dialogFlow)
@@ -414,43 +414,45 @@ private fun ShizukuErrorDialog(stateFlow: MutableStateFlow<Throwable?>) {
     }
 }
 
-val accessRestrictedSettingsShowFlow = MutableStateFlow(false)
+// 暂时隐藏无障碍相关的权限限制弹窗
+// val accessRestrictedSettingsShowFlow = MutableStateFlow(false)
 
 @Composable
 fun AccessRestrictedSettingsDlg() {
-    val a11yRunning by A11yService.isRunning.collectAsState()
-    LaunchedEffect(a11yRunning) {
-        if (a11yRunning) {
-            accessRestrictedSettingsShowFlow.value = false
-        }
-    }
-    val accessRestrictedSettingsShow by accessRestrictedSettingsShowFlow.collectAsState()
-    val mainVm = LocalMainViewModel.current
-    val isA11yPage = mainVm.topRoute is AuthA11yRoute
-    LaunchedEffect(isA11yPage, accessRestrictedSettingsShow) {
-        if (isA11yPage && accessRestrictedSettingsShow && !a11yRunning) {
-            toast("请重新授权以解除限制")
-            accessRestrictedSettingsShowFlow.value = false
-        }
-    }
-    if (accessRestrictedSettingsShow && !isA11yPage && !a11yRunning) {
-        AlertDialog(
-            title = { Text(text = "权限受限") },
-            text = { Text(text = "当前操作权限「访问受限设置」已被限制, 请先解除限制") },
-            onDismissRequest = { accessRestrictedSettingsShowFlow.value = false },
-            confirmButton = {
-                TextButton({
-                    accessRestrictedSettingsShowFlow.value = false
-                    mainVm.navigatePage(AppOpsAllowRoute)
-                }) { Text(text = "解除") }
-            },
-            dismissButton = {
-                TextButton({ accessRestrictedSettingsShowFlow.value = false }) {
-                    Text(text = "关闭")
-                }
-            },
-        )
-    }
+    // 暂时隐藏无障碍相关的权限限制弹窗
+    // val a11yRunning by A11yService.isRunning.collectAsState()
+    // LaunchedEffect(a11yRunning) {
+    //     if (a11yRunning) {
+    //         accessRestrictedSettingsShowFlow.value = false
+    //     }
+    // }
+    // val accessRestrictedSettingsShow by accessRestrictedSettingsShowFlow.collectAsState()
+    // val mainVm = LocalMainViewModel.current
+    // val isA11yPage = mainVm.topRoute is AuthA11yRoute
+    // LaunchedEffect(isA11yPage, accessRestrictedSettingsShow) {
+    //     if (isA11yPage && accessRestrictedSettingsShow && !a11yRunning) {
+    //         toast("请重新授权以解除限制")
+    //         accessRestrictedSettingsShowFlow.value = false
+    //     }
+    // }
+    // if (accessRestrictedSettingsShow && !isA11yPage && !a11yRunning) {
+    //     AlertDialog(
+    //         title = { Text(text = "权限受限") },
+    //         text = { Text(text = "当前操作权限「访问受限设置」已被限制, 请先解除限制") },
+    //         onDismissRequest = { accessRestrictedSettingsShowFlow.value = false },
+    //         confirmButton = {
+    //             TextButton({
+    //                 accessRestrictedSettingsShowFlow.value = false
+    //                 mainVm.navigatePage(AppOpsAllowRoute)
+    //             }) { Text(text = "解除") }
+    //         },
+    //         dismissButton = {
+    //             TextButton({ accessRestrictedSettingsShowFlow.value = false }) {
+    //                 Text(text = "关闭")
+    //             }
+    //         },
+    //     )
+    // }
 }
 
 @Composable

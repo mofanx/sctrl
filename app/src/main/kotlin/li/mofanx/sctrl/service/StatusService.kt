@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import li.mofanx.sctrl.META
 import li.mofanx.sctrl.MainActivity
-import li.mofanx.sctrl.a11y.useA11yServiceEnabledFlow
+
 import li.mofanx.sctrl.app
 import li.mofanx.sctrl.notif.abNotif
 import li.mofanx.sctrl.permission.appOpsRestrictedFlow
@@ -39,8 +39,6 @@ class StatusService : Service(), OnSimpleLife by DefaultSimpleLifeImpl() {
         !a && b
     }.stateIn(scope, SharingStarted.Eagerly, false)
 
-    val a11yServiceEnabledFlow = useA11yServiceEnabledFlow()
-
     fun statusTriple(): Triple<String, String, String?> {
         val abRunning = A11yService.isRunning.value
         val automationRunning = uiAutomationFlow.value != null
@@ -52,12 +50,10 @@ class StatusService : Service(), OnSimpleLife by DefaultSimpleLifeImpl() {
         } else if (shizukuWarn) {
             Triple(title, "Shizuku 未连接，请授权或关闭优化", null)
         } else if (!automationRunning && !abRunning) {
-            val text = if (a11yServiceEnabledFlow.value) {
-                "无障碍发生故障"
-            } else if (writeSecureSettingsState.updateAndGet()) {
-                "无障碍已关闭"
+            val text = if (store.enableShizuku) {
+                "Shizuku 未连接"
             } else {
-                "无障碍未授权"
+                "服务已关闭"
             }
             Triple(title, text, abNotif.uri)
         } else {
@@ -79,8 +75,6 @@ class StatusService : Service(), OnSimpleLife by DefaultSimpleLifeImpl() {
                     uiAutomationFlow,
                     storeFlow,
                     shizukuWarnFlow,
-                    a11yServiceEnabledFlow,
-                    writeSecureSettingsState.stateFlow,
                     appOpsRestrictedFlow,
                 ) {
                     statusTriple()

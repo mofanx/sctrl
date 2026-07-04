@@ -280,12 +280,9 @@ class ProxyUiAutomationConnection : IUiAutomationConnection.Stub() {
                         "UiAutomationConnection#restoreRotationStateLocked"
                     )
                 }
-            } else {
-                when (HiddenApiType.thawRotation) {
-                    1 -> mWindowManager.thawRotation()
-                    2 -> mWindowManager.thawRotation("UiAutomationConnection#restoreRotationStateLocked")
-                }
             }
+            // 如果 connect 时未冻结，disconnect 时不主动 thaw，
+            // 避免覆盖用户在连接期间手动设置的方向锁
         } catch (_: RemoteException) {
         }
     }

@@ -233,7 +233,7 @@ class App : Application() {
         initToast()
         initStore()
         initChannel()
-        initAppState()
+        // initAppState() // 当前应用无需获取应用列表功能
         initShizuku()
     }
 }

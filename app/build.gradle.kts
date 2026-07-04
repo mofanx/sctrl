@@ -125,7 +125,7 @@ android {
         debug {
             signingConfig = ankSigningConfig
             applicationIdSuffix = ".debug"
-            resValue("color", "better_black", "#FF5D92")
+            resValue("color", "better_black", "#1A1A1A")
             debugSuffixPairList.onEach { (key, value) ->
                 resValue("string", key, "$value-debug")
             }

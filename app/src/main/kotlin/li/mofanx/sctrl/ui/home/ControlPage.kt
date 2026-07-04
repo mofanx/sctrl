@@ -1,10 +1,9 @@
 package li.mofanx.sctrl.ui.home
 
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,8 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -40,9 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.update
 import li.mofanx.sctrl.MainActivity
 import li.mofanx.sctrl.R
-import li.mofanx.sctrl.permission.appOpsRestrictedFlow
 import li.mofanx.sctrl.shizuku.shizukuContextFlow
-import li.mofanx.sctrl.ui.AuthA11yRoute
 import li.mofanx.sctrl.ui.component.PageSwitchItemCard
 import li.mofanx.sctrl.ui.component.PerfIcon
 import li.mofanx.sctrl.ui.component.PerfIconButton
@@ -51,7 +46,6 @@ import li.mofanx.sctrl.ui.component.useScrollBehaviorState
 import li.mofanx.sctrl.ui.share.LocalMainViewModel
 import li.mofanx.sctrl.ui.style.EmptyHeight
 import li.mofanx.sctrl.ui.style.itemHorizontalPadding
-import li.mofanx.sctrl.ui.style.itemVerticalPadding
 import li.mofanx.sctrl.util.launchTry
 import li.mofanx.sctrl.util.throttle
 import li.mofanx.sctrl.util.toast
@@ -92,9 +86,9 @@ fun useControlPage(): ScaffoldExt {
             }, actions = {
                 PerfIconButton(
                     imageVector = PerfIcon.RocketLaunch,
-                    onClickLabel = "前往无障碍授权页面",
-                    contentDescription = "无障碍",
-                    onClick = throttle { mainVm.navigatePage(AuthA11yRoute) },
+                    onClickLabel = "Shizuku 授权",
+                    contentDescription = "Shizuku 授权",
+                    onClick = throttle { mainVm.requestShizuku() },
                 )
             })
         }) { contentPadding ->
@@ -111,47 +105,22 @@ fun useControlPage(): ScaffoldExt {
                 .padding(horizontal = itemHorizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // 权限警告条
-            if (appOpsRestrictedFlow.collectAsState().value) {
-                Spacer(modifier = Modifier.height(itemHorizontalPadding / 2))
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics(mergeDescendants = true) {
-                            this.onClick(label = "前往解除限制页面", action = null)
-                        },
-                    shape = MaterialTheme.shapes.large,
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                    onClick = throttle { mainVm.navigatePage(AuthA11yRoute) },
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(itemVerticalPadding),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        PerfIcon(imageVector = PerfIcon.WarningAmber)
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = "检测到权限受限制，请前往解除",
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        PerfIcon(imageVector = PerfIcon.KeyboardArrowRight)
-                    }
-                }
-            }
-
             // Shizuku 未连接提示
             if (!shizukuOk) {
                 Spacer(modifier = Modifier.height(itemHorizontalPadding / 2))
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            // 自动开启启用优化开关并请求授权
+                            mainVm.switchEnableShizuku(true)
+                            mainVm.requestShizuku()
+                        },
                     shape = MaterialTheme.shapes.large,
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                 ) {
                     Text(
-                        text = "Shizuku 未连接，屏幕控制需要 Shizuku 授权",
+                        text = "Shizuku 未连接，屏幕控制需要 Shizuku 授权（点击自动授权）",
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )

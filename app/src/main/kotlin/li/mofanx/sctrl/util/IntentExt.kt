@@ -22,6 +22,7 @@ import li.mofanx.sctrl.permission.canWriteExternalStorage
 import li.mofanx.sctrl.permission.foregroundServiceSpecialUseState
 import li.mofanx.sctrl.permission.notificationState
 import li.mofanx.sctrl.permission.requiredPermission
+import li.mofanx.sctrl.shizuku.shizukuContextFlow
 import java.io.File
 import kotlin.reflect.KClass
 
@@ -137,7 +138,14 @@ fun <T : Service> stopServiceByClass(clazz: KClass<T>) {
 
 fun <T : Service> startForegroundServiceByClass(clazz: KClass<T>) {
     if (!notificationState.checkOrToast()) return
-    if (!foregroundServiceSpecialUseState.checkOrToast()) return
+    // 如果 foregroundServiceSpecialUse 权限被系统（MIUI）收回，先通过 Shizuku 重新授权再重试
+    if (!foregroundServiceSpecialUseState.updateAndGet()) {
+        shizukuContextFlow.value.appOpsService?.allowAllSelfMode()
+        if (!foregroundServiceSpecialUseState.updateAndGet()) {
+            foregroundServiceSpecialUseState.checkOrToast()
+            return
+        }
+    }
     val intent = Intent(app, clazz.java)
     try {
         app.startForegroundService(intent)

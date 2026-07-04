@@ -320,8 +320,8 @@ private fun shizukuCheckGranted(): Boolean {
         false
     }
     if (!granted) return false
-    val u = shizukuContextFlow.value.packageManager ?: SafePackageManager.newBinder()
-    return u?.isSafeMode != null
+    // 移除对 shizukuContextFlow 的依赖，避免循环依赖和初始化问题
+    return true
 }
 
 val shizukuGrantedState by lazy {

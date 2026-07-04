@@ -100,9 +100,10 @@ fun AppOpsAllowPage() {
                                 mainVm.guardShizukuContext()
                                 toast("授权成功")
                             },
-                            "命令授权" to {
-                                vm.showCopyDlgFlow.value = true
-                            },
+                            // 命令授权功能暂时不可用，隐藏
+                            // "命令授权" to {
+                            //     vm.showCopyDlgFlow.value = true
+                            // },
                             "卸载重装" to {
                                 mainVm.dialogFlow.updateDialogOptions(
                                     title = "卸载重装",
@@ -123,13 +124,14 @@ fun AppOpsAllowPage() {
     }
 
     val showCopyDlg by vm.showCopyDlgFlow.collectAsState()
-    ManualAuthDialog(
-        commandText = ankStartCommandText,
-        show = showCopyDlg,
-        onUpdateShow = {
-            vm.showCopyDlgFlow.value = it
-        }
-    )
+    // 命令授权功能暂时不可用，隐藏相关UI
+    // ManualAuthDialog(
+    //     commandText = ankStartCommandText,
+    //     show = showCopyDlg,
+    //     onUpdateShow = {
+    //         vm.showCopyDlgFlow.value = it
+    //     }
+    // )
 }
 
 @Composable

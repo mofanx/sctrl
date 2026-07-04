@@ -254,6 +254,11 @@ fun initShizuku() {
         LogUtils.d("Shizuku.addBinderDeadListener")
         shizukuGrantedState.stateFlow.value = false
     }
+    // 启动时立即检查一次授权状态
+    appScope.launchTry(Dispatchers.IO) {
+        delay(500) // 给 Shizuku 一些初始化时间
+        shizukuGrantedState.updateAndGet()
+    }
     appScope.launchTry {
         shizukuUsedFlow.collect { updateShizukuBinder() }
     }

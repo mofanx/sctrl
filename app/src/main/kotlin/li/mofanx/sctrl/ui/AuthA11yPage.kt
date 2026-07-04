@@ -1,9 +1,6 @@
 package li.mofanx.sctrl.ui
 
-import android.Manifest
-import android.app.AppOpsManagerHidden
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,8 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,27 +33,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
-import li.mofanx.sctrl.META
-import li.mofanx.sctrl.permission.Manifest_permission_GET_APP_OPS_STATS
-import li.mofanx.sctrl.permission.writeSecureSettingsState
-import li.mofanx.sctrl.service.A11yService
-import li.mofanx.sctrl.shizuku.SafeAppOpsService
-import li.mofanx.sctrl.shizuku.shizukuUsedFlow
-import li.mofanx.sctrl.ui.component.AnimatedBooleanContent
-import li.mofanx.sctrl.ui.component.ManualAuthDialog
 import li.mofanx.sctrl.ui.component.PerfIcon
 import li.mofanx.sctrl.ui.component.PerfIconButton
 import li.mofanx.sctrl.ui.component.PerfTopAppBar
-import li.mofanx.sctrl.ui.component.updateDialogOptions
 import li.mofanx.sctrl.ui.share.LocalMainViewModel
 import li.mofanx.sctrl.ui.style.EmptyHeight
 import li.mofanx.sctrl.ui.style.cardHorizontalPadding
 import li.mofanx.sctrl.ui.style.itemHorizontalPadding
 import li.mofanx.sctrl.ui.style.surfaceCardColors
-import li.mofanx.sctrl.util.AndroidTarget
+import li.mofanx.sctrl.shizuku.shizukuContextFlow
 import li.mofanx.sctrl.util.launchAsFn
-import li.mofanx.sctrl.util.openA11ySettings
-import li.mofanx.sctrl.util.shFolder
 import li.mofanx.sctrl.util.throttle
 import li.mofanx.sctrl.util.toast
 
@@ -68,10 +52,6 @@ data object AuthA11yRoute : NavKey
 @Composable
 fun AuthA11yPage() {
     val mainVm = LocalMainViewModel.current
-    val vm = viewModel<AuthA11yVm>()
-    val showCopyDlg by vm.showCopyDlgFlow.collectAsState()
-    val writeSecureSettings by writeSecureSettingsState.stateFlow.collectAsState()
-    val a11yRunning by A11yService.isRunning.collectAsState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         PerfTopAppBar(scrollBehavior = scrollBehavior, navigationIcon = {
@@ -79,7 +59,7 @@ fun AuthA11yPage() {
                 imageVector = PerfIcon.ArrowBack,
                 onClick = { mainVm.popPage() }
             )
-        }, title = { Text(text = "无障碍授权") })
+        }, title = { Text(text = "Shizuku 授权") })
     }) { contentPadding ->
         Column(
             modifier = Modifier
@@ -97,7 +77,7 @@ fun AuthA11yPage() {
                     modifier = Modifier
                         .padding(horizontal = cardHorizontalPadding)
                         .padding(start = 4.dp, top = 12.dp),
-                    text = "基础",
+                    text = "授权",
                     style = MaterialTheme.typography.titleSmall
                 )
                 TextListItem(
@@ -106,95 +86,24 @@ fun AuthA11yPage() {
                         .padding(start = 8.dp, top = 4.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     list = listOf(
-                        "授予「无障碍权限」",
-                        "无障碍关闭后需重新授权"
+                        "授予 Shizuku 权限",
+                        "屏幕控制等功能需要 Shizuku 提供系统 API"
                     ),
                 )
-                AnimatedBooleanContent(
-                    targetState = writeSecureSettings || a11yRunning,
-                    contentTrue = {
-                        Text(
-                            modifier = Modifier
-                                .padding(horizontal = cardHorizontalPadding)
-                                .padding(start = 8.dp, top = 4.dp),
-                            text = "已持有「无障碍权限」可继续使用",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    },
-                    contentFalse = {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = cardHorizontalPadding),
-                            verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            TextButton(
-                                onClick = throttle { openA11ySettings() },
-                            ) {
-                                Text(
-                                    text = "手动授权",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                )
-                            }
-                        }
-                    }
-                )
-                Text(
+                Row(
                     modifier = Modifier
-                        .padding(horizontal = cardHorizontalPadding)
-                        .padding(start = 4.dp, top = 8.dp),
-                    text = "增强",
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                TextListItem(
-                    modifier = Modifier
-                        .padding(horizontal = cardHorizontalPadding)
-                        .padding(start = 8.dp, top = 4.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    list = listOf(
-                        "授予「写入安全设置权限」",
-                        "应用可自行控制开关无障碍",
-                    ),
-                )
-                AnimatedBooleanContent(
-                    targetState = writeSecureSettings,
-                    contentTrue = {
-                        Text(
-                            modifier = Modifier
-                                .padding(horizontal = cardHorizontalPadding)
-                                .padding(start = 8.dp, top = 4.dp),
-                            text = "已持有「写入安全设置权限」 优先使用此项",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    },
-                    contentFalse = {
-                        Row(
-                            modifier = Modifier
-                                .padding(horizontal = cardHorizontalPadding),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            ShizukuAuthButton()
-                            TextButton(onClick = { vm.showCopyDlgFlow.value = true }) {
-                                Text(
-                                    text = "命令授权",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                )
-                            }
-                        }
-                    }
-                )
+                        .fillMaxWidth()
+                        .padding(horizontal = cardHorizontalPadding),
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    ShizukuAuthButton()
+                }
                 Spacer(modifier = Modifier.height(12.dp))
             }
             Spacer(modifier = Modifier.height(EmptyHeight))
         }
     }
-
-    ManualAuthDialog(
-        commandText = ankStartCommandText,
-        show = showCopyDlg,
-        onUpdateShow = { vm.showCopyDlgFlow.value = it },
-    )
 }
 
 @Composable
@@ -207,7 +116,7 @@ private fun ShizukuAuthButton(
         modifier = modifier,
         onClick = throttle(vm.viewModelScope.launchAsFn(Dispatchers.IO) {
             mainVm.guardShizukuContext()
-            if (writeSecureSettingsState.value) {
+            if (shizukuContextFlow.value.ok) {
                 toast("授权成功")
             }
         })
@@ -217,30 +126,6 @@ private fun ShizukuAuthButton(
             style = MaterialTheme.typography.bodyLarge,
         )
     }
-}
-
-private val Int.appopsAllow get() = "appops set ${META.appId} ${AppOpsManagerHidden.opToName(this)} allow"
-private val String.pmGrant get() = "pm grant ${META.appId} $this"
-
-val ankStartCommandText by lazy {
-    val commandText = listOfNotNull(
-        "set -euo pipefail",
-        "echo '> start start.sh'",
-        Manifest.permission.WRITE_SECURE_SETTINGS.pmGrant,
-        Manifest_permission_GET_APP_OPS_STATS.pmGrant,
-        if (AndroidTarget.TIRAMISU) Manifest.permission.POST_NOTIFICATIONS.pmGrant else null,
-        AppOpsManagerHidden.OP_POST_NOTIFICATION.appopsAllow,
-        AppOpsManagerHidden.OP_SYSTEM_ALERT_WINDOW.appopsAllow,
-        if (AndroidTarget.Q) AppOpsManagerHidden.OP_ACCESS_ACCESSIBILITY.appopsAllow else null,
-        if (AndroidTarget.TIRAMISU) AppOpsManagerHidden.OP_ACCESS_RESTRICTED_SETTINGS.appopsAllow else null,
-        if (AndroidTarget.UPSIDE_DOWN_CAKE) AppOpsManagerHidden.OP_FOREGROUND_SERVICE_SPECIAL_USE.appopsAllow else null,
-        if (SafeAppOpsService.supportCreateA11yOverlay) AppOpsManagerHidden.OP_CREATE_ACCESSIBILITY_OVERLAY.appopsAllow else null,
-        "sh ${shFolder.absolutePath}/expose.sh 1",
-        "echo '> start.sh end'",
-    ).joinToString("\n")
-    val file = shFolder.resolve("start.sh")
-    file.writeText(commandText)
-    "adb shell sh ${file.absolutePath}"
 }
 
 @Composable
