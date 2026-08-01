@@ -35,7 +35,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.update
-import li.mofanx.sctrl.app
 import li.mofanx.sctrl.MainActivity
 import li.mofanx.sctrl.R
 import li.mofanx.sctrl.shizuku.shizukuContextFlow
@@ -184,7 +183,7 @@ fun useControlPage(): ScaffoldExt {
             PageSwitchItemCard(
                 imageVector = PerfIcon.LightMode,
                 title = "保持唤醒",
-                subtitle = "充电时屏幕保持常亮",
+                subtitle = "屏幕保持常亮（不依赖充电状态）",
                 checked = stayAwake,
                 enabled = shizukuReady,
                 onCheckedChange = { enable ->
@@ -193,11 +192,7 @@ fun useControlPage(): ScaffoldExt {
                         if (ok) {
                             vm.stayAwakeFlow.update { enable }
                             storeFlow.update { it.copy(stayAwake = enable) }
-                            if (enable && !app.isCharging) {
-                                toast("保持唤醒已开启，但未连接充电器，仅在充电时生效")
-                            } else {
-                                toast(if (enable) "保持唤醒已开启" else "保持唤醒已关闭")
-                            }
+                            toast(if (enable) "保持唤醒已开启" else "保持唤醒已关闭")
                         } else {
                             toast("操作失败：无法修改系统设置，请检查 Shizuku 授权或系统限制")
                         }

@@ -20,6 +20,11 @@ object ScreenControlHelper {
     private const val POWER_MODE_OFF = 0
     private const val POWER_MODE_NORMAL = 2
 
+    // 屏幕常亮使用的超时时间（Integer.MAX_VALUE，约 24.8 天）
+    private const val STAY_AWAKE_TIMEOUT_MS = 2_147_483_647L
+    // 大于等于该阈值视为已开启屏幕常亮
+    private const val STAY_AWAKE_THRESHOLD = 2_147_483_000L
+
     // 守护模式：持续保持屏幕关闭
     private val keepScreenOff = AtomicBoolean(false)
     private var guardThread: Thread? = null
@@ -153,8 +158,11 @@ object ScreenControlHelper {
         }
     }
 
-    // 保存熄屏前的 screen_off_timeout，用于恢复
-    private var savedScreenOffTimeout: String = ""
+    // 保存熄屏前的 screen_off_timeout，用于 cmd display 方案恢复
+    private var savedScreenOffTimeoutForDisplay: String = ""
+
+    // 保存保持唤醒前的 screen_off_timeout，用于关闭时恢复
+    private var savedScreenOffTimeoutForStayAwake: String = ""
 
     /**
      * 通过 cmd display power-off/power-on 控制屏幕电源
@@ -169,28 +177,35 @@ object ScreenControlHelper {
     private fun setDisplayPowerModeViaCmdDisplay(turnOff: Boolean): Boolean {
         return try {
             if (turnOff) {
-                // 保存当前 screen_off_timeout
-                savedScreenOffTimeout = execShell("settings get system screen_off_timeout")
-                    .result.trim()
+                // 未保持唤醒时才保存，避免覆盖保持唤醒的原始值
+                if (!isStayAwake()) {
+                    savedScreenOffTimeoutForDisplay = execShell("settings get system screen_off_timeout")
+                        .result.trim()
+                }
                 // 设置超长超时防止系统自动唤醒
-                execShell("settings put system screen_off_timeout 2147483647")
+                execShell("settings put system screen_off_timeout $STAY_AWAKE_TIMEOUT_MS")
                 // 关闭屏幕
                 val result = execShell("cmd display power-off 0")
                 if (result.ok) {
                     // 启动守护线程，持续保持屏幕关闭
                     startScreenOffGuard()
                 }
-                Log.d(TAG, "screen off via cmd display power-off, ok=${result.ok}")
+                Log.d(TAG, "screen off via cmd display power-off, ok=${result.ok}, stayAwake=${isStayAwake()}")
                 result.ok
             } else {
                 // 停止守护线程
                 stopScreenOffGuard()
                 // 开启屏幕
                 val result = execShell("cmd display power-on 0")
-                // 恢复原始 screen_off_timeout
-                val timeout = savedScreenOffTimeout.toLongOrNull() ?: 120000L
-                execShell("settings put system screen_off_timeout $timeout")
-                Log.d(TAG, "screen on via cmd display power-on, ok=${result.ok}, restored timeout=$timeout")
+                // 未保持唤醒时恢复原始 screen_off_timeout
+                if (!isStayAwake()) {
+                    val timeout = savedScreenOffTimeoutForDisplay.toLongOrNull() ?: 120000L
+                    execShell("settings put system screen_off_timeout $timeout")
+                    savedScreenOffTimeoutForDisplay = ""
+                    Log.d(TAG, "screen on via cmd display power-on, ok=${result.ok}, restored timeout=$timeout")
+                } else {
+                    Log.d(TAG, "screen on via cmd display power-on, ok=${result.ok}, stayAwake keep max timeout")
+                }
                 result.ok
             }
         } catch (e: Throwable) {
@@ -269,17 +284,36 @@ object ScreenControlHelper {
     }
 
     /**
-     * 设置充电时保持唤醒
+     * 设置屏幕保持常亮（不依赖充电状态）
+     *
+     * 通过将 screen_off_timeout 设为超大值（Integer.MAX_VALUE）实现，
+     * 这样在电池供电时屏幕也不会因无操作而自动熄灭。
      *
      * @param enable true 开启，false 关闭
      * @return 是否成功
      */
     fun setStayAwake(enable: Boolean): Boolean {
         return try {
-            val value = if (enable) "7" else "0" // AC + USB + Wireless
-            val ok = execShell("settings put global stay_on_while_plugged_in $value").ok
-            Log.d(TAG, "setStayAwake enable=$enable, ok=$ok")
-            ok
+            if (enable) {
+                // 保存当前 screen_off_timeout，优先复用 cmd display 已保存的原始值
+                if (savedScreenOffTimeoutForStayAwake.isEmpty()) {
+                    savedScreenOffTimeoutForStayAwake = savedScreenOffTimeoutForDisplay.takeIf { it.isNotEmpty() }
+                        ?: execShell("settings get system screen_off_timeout").result.trim()
+                }
+                val ok = execShell("settings put system screen_off_timeout $STAY_AWAKE_TIMEOUT_MS").ok
+                Log.d(TAG, "setStayAwake enable=$enable, saved=$savedScreenOffTimeoutForStayAwake, ok=$ok")
+                ok
+            } else {
+                val timeout = savedScreenOffTimeoutForStayAwake.toLongOrNull() ?: 120000L
+                // 若当前 cmd display 熄屏前保存的是常亮值，同步恢复为原始值
+                if (savedScreenOffTimeoutForDisplay.isEmpty() || savedScreenOffTimeoutForDisplay == STAY_AWAKE_TIMEOUT_MS.toString()) {
+                    savedScreenOffTimeoutForDisplay = timeout.toString()
+                }
+                savedScreenOffTimeoutForStayAwake = ""
+                val ok = execShell("settings put system screen_off_timeout $timeout").ok
+                Log.d(TAG, "setStayAwake enable=$enable, restored timeout=$timeout, ok=$ok")
+                ok
+            }
         } catch (e: Throwable) {
             Log.d(TAG, "setStayAwake failed", e)
             false
@@ -287,15 +321,16 @@ object ScreenControlHelper {
     }
 
     /**
-     * 查询当前是否开启充电时保持唤醒
+     * 查询当前是否开启屏幕保持常亮
      */
     fun isStayAwake(): Boolean {
         return try {
-            val result = execShell("settings get global stay_on_while_plugged_in")
+            val result = execShell("settings get system screen_off_timeout")
                 .result.trim()
-            val value = result.toIntOrNull() ?: 0
-            Log.d(TAG, "isStayAwake value=$value")
-            value != 0
+            val value = result.toLongOrNull() ?: 0
+            val active = value >= STAY_AWAKE_THRESHOLD
+            Log.d(TAG, "isStayAwake value=$value, active=$active")
+            active
         } catch (e: Throwable) {
             Log.d(TAG, "isStayAwake failed", e)
             false
