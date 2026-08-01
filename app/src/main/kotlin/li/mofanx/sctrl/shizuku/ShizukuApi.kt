@@ -142,6 +142,10 @@ class ShizukuContext(
         return serviceWrapper?.isKeepingScreenOff() ?: false
     }
 
+    fun isStayAwake(): Boolean {
+        return serviceWrapper?.isStayAwake() ?: false
+    }
+
     init {
         if (activityTaskManager != null) {
             activityTaskManager.registerDefault()
@@ -182,6 +186,13 @@ val shizukuUsedFlow by lazy {
     ) { a, b ->
         a && b
     }.stateIn(appScope, SharingStarted.Eagerly, false)
+}
+
+/** 反映 Shizuku UserService 是否真正连接可用 */
+val shizukuReadyFlow by lazy {
+    shizukuContextFlow
+        .map { it.serviceWrapper != null }
+        .stateIn(appScope, SharingStarted.Eagerly, false)
 }
 
 val updateBinderMutex = MutexState()
@@ -253,6 +264,15 @@ fun initShizuku() {
     Shizuku.addBinderDeadListener {
         LogUtils.d("Shizuku.addBinderDeadListener")
         shizukuGrantedState.stateFlow.value = false
+    }
+    Shizuku.addRequestPermissionResultListener { _, grantResult ->
+        LogUtils.d(
+            "Shizuku.onRequestPermissionResult",
+            grantResult == PackageManager.PERMISSION_GRANTED
+        )
+        appScope.launchTry(Dispatchers.IO) {
+            shizukuGrantedState.updateAndGet()
+        }
     }
     // 启动时立即检查一次授权状态
     appScope.launchTry(Dispatchers.IO) {

@@ -136,6 +136,10 @@ class UserService(val context: Context) : IUserService.Stub() {
     override fun isKeepingScreenOff(): Boolean {
         return ScreenControlHelper.isKeepingScreenOff()
     }
+
+    override fun isStayAwake(): Boolean {
+        return ScreenControlHelper.isStayAwake()
+    }
 }
 
 private const val shizukuPsSuffix = "shizuku-user-service"
@@ -211,6 +215,13 @@ data class UserServiceWrapper(
 
     fun isKeepingScreenOff(): Boolean = try {
         userService.isKeepingScreenOff()
+    } catch (e: Throwable) {
+        e.printStackTrace()
+        false
+    }
+
+    fun isStayAwake(): Boolean = try {
+        userService.isStayAwake()
     } catch (e: Throwable) {
         e.printStackTrace()
         false

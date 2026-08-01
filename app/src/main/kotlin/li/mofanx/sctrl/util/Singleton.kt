@@ -15,6 +15,7 @@ val json by lazy {
         ignoreUnknownKeys = true
         explicitNulls = false
         encodeDefaults = true
+        coerceInputValues = true
     }
 }
 

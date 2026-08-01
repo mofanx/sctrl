@@ -5,11 +5,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import li.mofanx.sctrl.shizuku.shizukuContextFlow
+import li.mofanx.sctrl.store.storeFlow
 import li.mofanx.sctrl.ui.share.BaseViewModel
 
 class HomeVm : BaseViewModel() {
     val screenOffFlow get() = Companion.screenOffFlow
-    val stayAwakeFlow = MutableStateFlow(false)
+    val stayAwakeFlow = MutableStateFlow(storeFlow.value.stayAwake)
     val showEditPortDlgFlow = MutableStateFlow(false)
     val showShizukuStateFlow = MutableStateFlow(false)
 
@@ -35,6 +36,8 @@ class HomeVm : BaseViewModel() {
             } else {
                 screenOffFlow.value = false
             }
+            // 同步远端保持唤醒状态，避免用户在其他地方修改了设置
+            stayAwakeFlow.value = ctx.isStayAwake()
         }
     }
 }

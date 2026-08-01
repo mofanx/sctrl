@@ -164,8 +164,7 @@ object ScreenControlHelper {
      *
      * 为防止系统自动唤醒屏幕（触摸、通知等），熄屏时同步：
      * - 将 screen_off_timeout 设为最大值，阻止超时唤醒
-     * - 设置 stay_on_while_plugged_in，防止充电时唤醒
-     * 亮屏时恢复这些设置。
+     * 亮屏时恢复该设置。
      */
     private fun setDisplayPowerModeViaCmdDisplay(turnOff: Boolean): Boolean {
         return try {
@@ -283,6 +282,22 @@ object ScreenControlHelper {
             ok
         } catch (e: Throwable) {
             Log.d(TAG, "setStayAwake failed", e)
+            false
+        }
+    }
+
+    /**
+     * 查询当前是否开启充电时保持唤醒
+     */
+    fun isStayAwake(): Boolean {
+        return try {
+            val result = execShell("settings get global stay_on_while_plugged_in")
+                .result.trim()
+            val value = result.toIntOrNull() ?: 0
+            Log.d(TAG, "isStayAwake value=$value")
+            value != 0
+        } catch (e: Throwable) {
+            Log.d(TAG, "isStayAwake failed", e)
             false
         }
     }

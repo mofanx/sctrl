@@ -15,4 +15,5 @@ interface IUserService {
     boolean setDisplayPowerMode(boolean turnOff) = 7;
     boolean setStayAwake(boolean enable) = 8;
     boolean isKeepingScreenOff() = 9;
+    boolean isStayAwake() = 10;
 }

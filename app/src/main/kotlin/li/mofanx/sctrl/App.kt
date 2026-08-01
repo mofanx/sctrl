@@ -8,6 +8,7 @@ import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherApps
 import android.content.pm.PackageInfo
@@ -16,6 +17,7 @@ import android.database.ContentObserver
 import android.hardware.display.DisplayManager
 import android.hardware.input.InputManager
 import android.net.Uri
+import android.os.BatteryManager
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
@@ -190,6 +192,15 @@ class App : Application() {
     val keyguardManager by lazy { app.getSystemService(KEYGUARD_SERVICE) as KeyguardManager }
     val clipboardManager by lazy { app.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager }
     val powerManager by lazy { getSystemService(POWER_SERVICE) as PowerManager }
+
+    val isCharging: Boolean
+        get() {
+            val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                ?: return false
+            val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+            return status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                    status == BatteryManager.BATTERY_STATUS_FULL
+        }
     val a11yManager by lazy { getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager }
     val launcherApps by lazy { getSystemService(LAUNCHER_APPS_SERVICE) as LauncherApps }
 

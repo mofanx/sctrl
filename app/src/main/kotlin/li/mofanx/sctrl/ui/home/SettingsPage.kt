@@ -42,10 +42,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import li.mofanx.sctrl.MainActivity
 
-import li.mofanx.sctrl.permission.shizukuGrantedState
 import li.mofanx.sctrl.service.HttpService
-import li.mofanx.sctrl.service.StatusService
 import li.mofanx.sctrl.shizuku.shizukuContextFlow
+import li.mofanx.sctrl.service.StatusService
+import li.mofanx.sctrl.shizuku.shizukuReadyFlow
 import li.mofanx.sctrl.shizuku.updateBinderMutex
 import li.mofanx.sctrl.store.storeFlow
 import li.mofanx.sctrl.ui.AboutRoute
@@ -166,7 +166,7 @@ fun useSettingsPage(): ScaffoldExt {
         }) { contentPadding ->
         val store by storeFlow.collectAsState()
         val manageRunning by StatusService.isRunning.collectAsState()
-        val shizukuGranted by shizukuGrantedState.stateFlow.collectAsState()
+        val shizukuReady by shizukuReadyFlow.collectAsState()
         val server by HttpService.httpServerFlow.collectAsState()
         val httpServerRunning = server != null
         val localNetworkIps by HttpService.localNetworkIpsFlow.collectAsState()
@@ -235,9 +235,9 @@ fun useSettingsPage(): ScaffoldExt {
                     contentDescription = "Shizuku 状态",
                 )
             }
-            AnimatedVisibility(store.enableShizuku && !shizukuGranted) {
+            AnimatedVisibility(store.enableShizuku && !shizukuReady) {
                 AuthCard(
-                    title = "未授权",
+                    title = "未连接",
                     subtitle = "点击授权以优化体验",
                     onAuthClick = { mainVm.requestShizuku() }
                 )

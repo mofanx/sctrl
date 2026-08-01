@@ -35,9 +35,12 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.update
+import li.mofanx.sctrl.app
 import li.mofanx.sctrl.MainActivity
 import li.mofanx.sctrl.R
 import li.mofanx.sctrl.shizuku.shizukuContextFlow
+import li.mofanx.sctrl.shizuku.shizukuReadyFlow
+import li.mofanx.sctrl.store.storeFlow
 import li.mofanx.sctrl.ui.component.PageSwitchItemCard
 import li.mofanx.sctrl.ui.component.PerfIcon
 import li.mofanx.sctrl.ui.component.PerfIconButton
@@ -95,7 +98,7 @@ fun useControlPage(): ScaffoldExt {
         val screenOff by vm.screenOffFlow.collectAsState()
         val stayAwake by vm.stayAwakeFlow.collectAsState()
         val shizukuContext by shizukuContextFlow.collectAsState()
-        val shizukuOk = shizukuContext.serviceWrapper != null
+        val shizukuReady by shizukuReadyFlow.collectAsState()
 
         Column(
             modifier = Modifier
@@ -106,7 +109,7 @@ fun useControlPage(): ScaffoldExt {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Shizuku 未连接提示
-            if (!shizukuOk) {
+            if (!shizukuReady) {
                 Spacer(modifier = Modifier.height(itemHorizontalPadding / 2))
                 Card(
                     modifier = Modifier
@@ -132,7 +135,7 @@ fun useControlPage(): ScaffoldExt {
             Box(contentAlignment = Alignment.Center) {
                 FilledTonalIconButton(
                     onClick = throttle {
-                        if (!shizukuOk) {
+                        if (!shizukuReady) {
                             toast("Shizuku 未连接")
                             return@throttle
                         }
@@ -183,15 +186,20 @@ fun useControlPage(): ScaffoldExt {
                 title = "保持唤醒",
                 subtitle = "充电时屏幕保持常亮",
                 checked = stayAwake,
-                enabled = shizukuOk,
+                enabled = shizukuReady,
                 onCheckedChange = { enable ->
                     vm.viewModelScope.launchTry {
                         val ok = shizukuContext.setStayAwake(enable)
                         if (ok) {
                             vm.stayAwakeFlow.update { enable }
-                            toast(if (enable) "保持唤醒已开启" else "保持唤醒已关闭")
+                            storeFlow.update { it.copy(stayAwake = enable) }
+                            if (enable && !app.isCharging) {
+                                toast("保持唤醒已开启，但未连接充电器，仅在充电时生效")
+                            } else {
+                                toast(if (enable) "保持唤醒已开启" else "保持唤醒已关闭")
+                            }
                         } else {
-                            toast("操作失败")
+                            toast("操作失败：无法修改系统设置，请检查 Shizuku 授权或系统限制")
                         }
                     }
                 }

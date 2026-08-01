@@ -12,4 +12,5 @@ data class SettingsStore(
     val enableDynamicColor: Boolean = true,
     val useSystemToast: Boolean = false,
     val termsAccepted: Boolean = false,
+    val stayAwake: Boolean = false,
 )

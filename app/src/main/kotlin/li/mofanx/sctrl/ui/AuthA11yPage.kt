@@ -41,7 +41,7 @@ import li.mofanx.sctrl.ui.style.EmptyHeight
 import li.mofanx.sctrl.ui.style.cardHorizontalPadding
 import li.mofanx.sctrl.ui.style.itemHorizontalPadding
 import li.mofanx.sctrl.ui.style.surfaceCardColors
-import li.mofanx.sctrl.shizuku.shizukuContextFlow
+import li.mofanx.sctrl.shizuku.shizukuReadyFlow
 import li.mofanx.sctrl.util.launchAsFn
 import li.mofanx.sctrl.util.throttle
 import li.mofanx.sctrl.util.toast
@@ -116,7 +116,7 @@ private fun ShizukuAuthButton(
         modifier = modifier,
         onClick = throttle(vm.viewModelScope.launchAsFn(Dispatchers.IO) {
             mainVm.guardShizukuContext()
-            if (shizukuContextFlow.value.ok) {
+            if (shizukuReadyFlow.value) {
                 toast("授权成功")
             }
         })

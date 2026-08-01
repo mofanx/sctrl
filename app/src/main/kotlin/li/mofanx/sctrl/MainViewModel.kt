@@ -18,6 +18,7 @@ import li.mofanx.sctrl.data.CrashData
 import li.mofanx.sctrl.permission.AuthReason
 import li.mofanx.sctrl.permission.shizukuGrantedState
 import li.mofanx.sctrl.shizuku.shizukuContextFlow
+import li.mofanx.sctrl.shizuku.shizukuReadyFlow
 import li.mofanx.sctrl.shizuku.updateBinderMutex
 import li.mofanx.sctrl.store.storeFlow
 import li.mofanx.sctrl.ui.WebViewRoute
@@ -115,20 +116,25 @@ class MainViewModel : BaseViewModel(), OnSimpleLife by DefaultSimpleLifeImpl() {
     }
 
     fun requestShizuku() {
-        if (shizukuContextFlow.value.ok) return
+        if (shizukuReadyFlow.value) return
         if (updateBinderMutex.mutex.isLocked) {
             toast("正在连接中，请稍后")
             return
         }
-        try {
-            Shizuku.requestPermission(Activity.RESULT_OK)
-        } catch (e: Throwable) {
-            shizukuErrorFlow.value = e
+        if (!storeFlow.value.enableShizuku) {
+            switchEnableShizuku(true)
+        }
+        if (!shizukuGrantedState.updateAndGet()) {
+            try {
+                Shizuku.requestPermission(Activity.RESULT_OK)
+            } catch (e: Throwable) {
+                shizukuErrorFlow.value = e
+            }
         }
     }
 
     suspend fun guardShizukuContext() {
-        if (shizukuContextFlow.value.ok) return
+        if (shizukuReadyFlow.value) return
         if (!storeFlow.value.enableShizuku) {
             storeFlow.update { it.copy(enableShizuku = true) }
         }
@@ -136,7 +142,7 @@ class MainViewModel : BaseViewModel(), OnSimpleLife by DefaultSimpleLifeImpl() {
             requestShizuku()
             stopCoroutine()
         }
-        if (shizukuContextFlow.value.ok) return
+        if (shizukuReadyFlow.value) return
         stopCoroutine()
     }
 
